@@ -9,7 +9,7 @@
 
 /*//////////////
 
-
+デスクトップマスコットの
 開発方針大幅変更
 
 まず、デスクトップマスコットになる画像はユーザーさんにアップロードしてもらうことにした。
@@ -57,18 +57,30 @@ void afterInitialize() {
 ////ツールバーウインドウハンドル
 HWND hToolbarWnd = NULL;
 
+///ID　ハンドル定義
+#define ID_TOOLBAR_BUTTON1 101
+#define ID_TOOLBAR_BUTTON2 102
+
 ///ツールバーウインドウの作成///
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (iMsg)
 	{
-	case WM_CREATE:
-		break;
-	case WM_DESTROY:
-		DestroyWindow(hWnd);
-		break;
-	default:
-		return DefWindowProc(hWnd, iMsg, wParam, lParam);
+		case WM_COMMAND:
+			switch (LOWORD(wParam))
+			{
+				case ID_TOOLBAR_BUTTON1:
+					MessageBox(hWnd, "ボタン1がクリックされました！", "通知", MB_OK);
+					break;
+				case ID_TOOLBAR_BUTTON2:
+					MessageBox(hWnd, "ボタン2がクリックされました！", "通知", MB_OK);
+					break;
+			}
+		case WM_DESTROY:
+			DestroyWindow(hWnd);
+			break;
+		default:
+			return DefWindowProc(hWnd, iMsg, wParam, lParam);
 	}
 	return 0;
 }
@@ -89,7 +101,33 @@ void Make_menu_window() {
 	RegisterClass(&wc);
 
 	//hToolbarWnd = CreateWindow("Toolbar", "TOOL", WS_DLGFRAME, 0, 0, 200, 200, NULL, NULL, GetModuleHandle(NULL), NULL);
+	//InitCommonControls();  // 共通コントロールの初期化（ツールバー用）
 	hToolbarWnd = CreateWindowEx(WS_EX_TOOLWINDOW,"TOOLBAR",NULL, WS_POPUP | WS_BORDER,0,0,200,200,NULL,NULL,NULL,NULL);
+	// イメージリストの作成（ボタンのアイコン用）
+	HIMAGELIST hImageList = ImageList_Create(16, 16, ILC_COLOR32, 2, 2);
+	HICON hIcon1 = LoadIcon(NULL, IDI_INFORMATION);
+	HICON hIcon2 = LoadIcon(NULL, IDI_WARNING);
+	ImageList_AddIcon(hImageList, hIcon1);
+	ImageList_AddIcon(hImageList, hIcon2);
+	SendMessage(hToolbarWnd, TB_SETIMAGELIST, 0, (LPARAM)hImageList);
+
+	// ツールバーのボタン情報
+	TBBUTTON tbb[2] = { 0 };
+	tbb[0].iBitmap = 0; // アイコンのインデックス
+	tbb[0].idCommand = ID_TOOLBAR_BUTTON1;
+	tbb[0].fsState = TBSTATE_ENABLED;
+	tbb[0].fsStyle = TBSTYLE_BUTTON;
+	tbb[0].iString = (INT_PTR)"ボタン1";
+
+	tbb[1].iBitmap = 1;
+	tbb[1].idCommand = ID_TOOLBAR_BUTTON2;
+	tbb[1].fsState = TBSTATE_ENABLED;
+	tbb[1].fsStyle = TBSTYLE_BUTTON;
+	tbb[1].iString = (INT_PTR)"ボタン2";
+
+	// ツールバーにボタンを追加
+	SendMessage(hToolbarWnd, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON), 0);
+	SendMessage(hToolbarWnd, TB_ADDBUTTONS, (WPARAM)2, (LPARAM)&tbb);
 	ShowWindow(hToolbarWnd, SW_SHOW);
 	UpdateWindow(hToolbarWnd);
 
@@ -209,8 +247,10 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	GetWindowRect(GetDesktopWindow(), &rc);
 	width = rc.right - rc.left;
 	height = rc.bottom - rc.top;
-	width = 2560;
-	height = 1440;
+	//width = 2560;
+	//height = 1440;
+	width = 1920;
+	height = 1080;
 
 	SetUseCharCodeFormat(DX_CHARCODEFORMAT_UTF8);
 	preInitialize(&width, &height);
