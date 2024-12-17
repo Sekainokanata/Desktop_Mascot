@@ -109,7 +109,7 @@ void Make_menu_window() {
 
 	//hToolbarWnd = CreateWindow("Toolbar", "TOOL", WS_DLGFRAME, 0, 0, 200, 200, NULL, NULL, GetModuleHandle(NULL), NULL);
 	InitCommonControls();  // 共通コントロールの初期化（ツールバー用）
-	hToolbarWnd = CreateWindowEx(WS_EX_TOOLWINDOW,"TOOLBAR",NULL, WS_POPUP | WS_BORDER,0,0,200,200,NULL,NULL,NULL,NULL);//問題ナシ
+	hToolbarWnd = CreateWindowEx(WS_EX_TOOLWINDOW,TOOLBARCLASSNAME,NULL, WS_POPUP | WS_BORDER | WS_CHILD,0,0,200,200,NULL,NULL,NULL,NULL);//問題ナシ
 	// イメージリストの作成（ボタンのアイコン用）
 	HIMAGELIST hImageList = ImageList_Create(16, 16, ILC_COLOR32, 2, 2);
 	HICON hIcon1 = LoadIcon(NULL, IDI_INFORMATION);
@@ -135,11 +135,18 @@ void Make_menu_window() {
 	// ツールバーにボタンを追加
 
 	///ここが問題。TB_BUTTONSTRUCTSIZEが失敗している
-	SendMessage(hToolbarWnd, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON), 0);
+    SendMessage(hToolbarWnd, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON), 0);
+
+    if (!SendMessageA(hToolbarWnd, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON), 0)) {
+    MessageBox(NULL, "TB_BUTTONSTRUCTSIZE failed", "Error", MB_OK);
+    }
+
 	SendMessage(hToolbarWnd, TB_ADDBUTTONS, (WPARAM)2, (LPARAM)&tbb);
-	if (!SendMessageA(hToolbarWnd, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON), 0)) {
-		MessageBox(NULL, "TB_AUTOSIZE failed", "Error", MB_OK);
-	}
+
+	//if (!SendMessageA(hToolbarWnd, TB_ADDBUTTONS, (WPARAM)2, (LPARAM)&tbb)) {
+	//	MessageBox(NULL, "TB_AUTOSIZE failed", "Error", MB_OK);
+	//}
+	//こちらは成功した
 
 	ShowWindow(hToolbarWnd, SW_SHOW);
 	UpdateWindow(hToolbarWnd);
