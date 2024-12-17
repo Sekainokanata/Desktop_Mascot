@@ -5,6 +5,16 @@
 #include <time.h>
 #include <string.h>
 #include <Windows.h>
+#include <commctrl.h>
+
+#pragma comment(lib, "comctl32.lib")
+
+////ツールバーウインドウハンドル
+HWND hToolbarWnd = NULL;
+
+///ID　ハンドル定義
+#define ID_TOOLBAR_BUTTON1 101
+#define ID_TOOLBAR_BUTTON2 102
 
 
 /*//////////////
@@ -53,36 +63,29 @@ void afterInitialize() {
 	SetDrawScreen(DX_SCREEN_BACK);
 }
 
-
-////ツールバーウインドウハンドル
-HWND hToolbarWnd = NULL;
-
-///ID　ハンドル定義
-#define ID_TOOLBAR_BUTTON1 101
-#define ID_TOOLBAR_BUTTON2 102
-
 ///ツールバーウインドウの作成///
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (iMsg)
 	{
-		case WM_COMMAND:
-			switch (LOWORD(wParam))
-			{
-				case ID_TOOLBAR_BUTTON1:
-					MessageBox(hWnd, "ボタン1がクリックされました！", "通知", MB_OK);
-					break;
-				case ID_TOOLBAR_BUTTON2:
-					MessageBox(hWnd, "ボタン2がクリックされました！", "通知", MB_OK);
-					break;
-			}
-		case WM_DESTROY:
-			DestroyWindow(hWnd);
-			break;
-		default:
-			return DefWindowProc(hWnd, iMsg, wParam, lParam);
+	case WM_COMMAND: {
+		switch (LOWORD(wParam))
+		{
+			case ID_TOOLBAR_BUTTON1:
+				MessageBox(hWnd, "ボタン1がクリックされました！", "通知", MB_OK);
+				break;
+			case ID_TOOLBAR_BUTTON2:
+				MessageBox(hWnd, "ボタン2がクリックされました！", "通知", MB_OK);
+				break;
+		}
+		return 0;
 	}
-	return 0;
+	case WM_DESTROY:
+		DestroyWindow(hWnd);
+		return 0;
+	default:
+		return DefWindowProc(hWnd, iMsg, wParam, lParam);
+	}
 }
 
 
@@ -97,12 +100,16 @@ void Make_menu_window() {
 	WNDCLASS wc = {};
 	wc.lpfnWndProc = WndProc;
 	wc.hInstance = GetModuleHandle(NULL);
-	wc.lpszClassName = "Toolbar";
+	wc.lpszClassName = "TOOLBAR";
+	//wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 	RegisterClass(&wc);
 
+
+
 	//hToolbarWnd = CreateWindow("Toolbar", "TOOL", WS_DLGFRAME, 0, 0, 200, 200, NULL, NULL, GetModuleHandle(NULL), NULL);
-	//InitCommonControls();  // 共通コントロールの初期化（ツールバー用）
-	hToolbarWnd = CreateWindowEx(WS_EX_TOOLWINDOW,"TOOLBAR",NULL, WS_POPUP | WS_BORDER,0,0,200,200,NULL,NULL,NULL,NULL);
+	InitCommonControls();  // 共通コントロールの初期化（ツールバー用）
+	hToolbarWnd = CreateWindowEx(WS_EX_TOOLWINDOW,"TOOLBAR",NULL, WS_POPUP | WS_BORDER,0,0,200,200,NULL,NULL,NULL,NULL);//問題ナシ
 	// イメージリストの作成（ボタンのアイコン用）
 	HIMAGELIST hImageList = ImageList_Create(16, 16, ILC_COLOR32, 2, 2);
 	HICON hIcon1 = LoadIcon(NULL, IDI_INFORMATION);
@@ -126,8 +133,14 @@ void Make_menu_window() {
 	tbb[1].iString = (INT_PTR)"ボタン2";
 
 	// ツールバーにボタンを追加
+
+	///ここが問題。TB_BUTTONSTRUCTSIZEが失敗している
 	SendMessage(hToolbarWnd, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON), 0);
 	SendMessage(hToolbarWnd, TB_ADDBUTTONS, (WPARAM)2, (LPARAM)&tbb);
+	if (!SendMessageA(hToolbarWnd, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON), 0)) {
+		MessageBox(NULL, "TB_AUTOSIZE failed", "Error", MB_OK);
+	}
+
 	ShowWindow(hToolbarWnd, SW_SHOW);
 	UpdateWindow(hToolbarWnd);
 
