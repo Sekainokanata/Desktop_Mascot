@@ -91,7 +91,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 
 
-void Make_menu_window() {
+void Make_menu_window(POINT po) {
 		
 	if (hToolbarWnd != NULL) {
 		return;
@@ -109,7 +109,7 @@ void Make_menu_window() {
 
 	//hToolbarWnd = CreateWindow("Toolbar", "TOOL", WS_DLGFRAME, 0, 0, 200, 200, NULL, NULL, GetModuleHandle(NULL), NULL);
 	InitCommonControls();  // 共通コントロールの初期化（ツールバー用）
-	hToolbarWnd = CreateWindowEx(WS_EX_TOOLWINDOW,TOOLBARCLASSNAME,NULL, WS_POPUP | WS_BORDER | WS_CHILD,0,0,200,200,NULL,NULL,NULL,NULL);//問題ナシ
+	hToolbarWnd = CreateWindowEx(WS_EX_TOOLWINDOW,TOOLBARCLASSNAME,NULL, WS_POPUP | WS_BORDER | WS_CHILD,po.x-200,po.y-200,200,200,NULL,NULL,NULL,NULL);//問題ナシ
 	// イメージリストの作成（ボタンのアイコン用）
 	HIMAGELIST hImageList = ImageList_Create(16, 16, ILC_COLOR32, 2, 2);
 	HICON hIcon1 = LoadIcon(NULL, IDI_INFORMATION);
@@ -148,9 +148,21 @@ void Make_menu_window() {
 	//}
 	//こちらは成功した
 
+	SetWindowPos(hToolbarWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 	ShowWindow(hToolbarWnd, SW_SHOW);
 	UpdateWindow(hToolbarWnd);
 
+
+
+	// メッセージループ
+	//多分ループはきちんと回っているが、メッセージが送られていない
+	MSG msg;
+	while (GetMessage(&msg, NULL, 0, 0)) {
+		if (!IsDialogMessage(hToolbarWnd, &msg)) {
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+	}
 
 }
 
@@ -249,7 +261,7 @@ void mainsystem(int width, int height)
 		if (GetKeyState(VK_RBUTTON) & 0x80) {//右クリ
 			GetCursorPos(&po);
 			if (po.x >= width - 250 and po.y >= height - 450)
-				Make_menu_window();
+				Make_menu_window(po);
 		}
 		if (CheckHitKey(KEY_INPUT_Q)) {
 			DeleteGraph(Arisa_Meido);
