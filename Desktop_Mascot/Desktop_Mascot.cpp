@@ -64,7 +64,7 @@ void afterInitialize() {
 }
 
 ///ツールバーウインドウの作成///
-LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
+static LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (iMsg)
 	{
@@ -105,11 +105,15 @@ void Make_menu_window(POINT po) {
 	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 	RegisterClass(&wc);
 
+	if (!RegisterClass(&wc)) {
+		MessageBox(NULL, "ウィンドウクラスの登録に失敗しました。", "エラー", MB_OK | MB_ICONERROR);
+		return;
+	}
 
 
 	//hToolbarWnd = CreateWindow("Toolbar", "TOOL", WS_DLGFRAME, 0, 0, 200, 200, NULL, NULL, GetModuleHandle(NULL), NULL);
 	InitCommonControls();  // 共通コントロールの初期化（ツールバー用）
-	hToolbarWnd = CreateWindowEx(WS_EX_TOOLWINDOW,TOOLBARCLASSNAME,NULL, WS_POPUP | WS_BORDER | WS_CHILD,po.x-200,po.y-200,200,200,NULL,NULL,NULL,NULL);//問題ナシ
+	hToolbarWnd = CreateWindowEx(WS_EX_TOOLWINDOW,"TOOLBAR",NULL, WS_POPUP | WS_BORDER | WS_CHILD,po.x-200,po.y-200,200,200,NULL,NULL,NULL,NULL);//問題ナシ
 	// イメージリストの作成（ボタンのアイコン用）
 	HIMAGELIST hImageList = ImageList_Create(16, 16, ILC_COLOR32, 2, 2);
 	HICON hIcon1 = LoadIcon(NULL, IDI_INFORMATION);
