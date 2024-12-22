@@ -1,4 +1,4 @@
-﻿#include <stdio.h>
+﻿﻿#include <stdio.h>
 #include "DxLib.h"
 #include <iostream>
 #include <stdlib.h>
@@ -71,12 +71,12 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lPar
 	case WM_COMMAND: {
 		switch (LOWORD(wParam))
 		{
-			case ID_TOOLBAR_BUTTON1:
-				MessageBox(hWnd, "ボタン1がクリックされました！", "通知", MB_OK);
-				break;
-			case ID_TOOLBAR_BUTTON2:
-				MessageBox(hWnd, "ボタン2がクリックされました！", "通知", MB_OK);
-				break;
+		case ID_TOOLBAR_BUTTON1:
+			MessageBox(hWnd, "ボタン1がクリックされました！", "通知", MB_OK);
+			break;
+		case ID_TOOLBAR_BUTTON2:
+			MessageBox(hWnd, "ボタン2がクリックされました！", "通知", MB_OK);
+			break;
 		}
 		return 0;
 	}
@@ -92,7 +92,7 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lPar
 
 
 void Make_menu_window(POINT po) {
-		
+
 	if (hToolbarWnd != NULL) {
 		return;
 	}
@@ -102,24 +102,24 @@ void Make_menu_window(POINT po) {
 	wc.hInstance = GetModuleHandle(NULL);
 	wc.lpszClassName = "TOOLBAR";
 	//wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	//wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 	RegisterClass(&wc);
 
-	/*if (!RegisterClass(&wc)) {
+	if (!RegisterClass(&wc)) {
 		MessageBox(NULL, "ウィンドウクラスの登録に失敗しました。", "エラー", MB_OK | MB_ICONERROR);
 		return;
-	}*/
+	}
 
 
 	//hToolbarWnd = CreateWindow("Toolbar", "TOOL", WS_DLGFRAME, 0, 0, 200, 200, NULL, NULL, GetModuleHandle(NULL), NULL);
 	InitCommonControls();  // 共通コントロールの初期化（ツールバー用）
-	hToolbarWnd = CreateWindowEx(WS_EX_TOOLWINDOW,"TOOLBAR",NULL, WS_POPUP | WS_BORDER | WS_CHILD,po.x-200,po.y-200,200,200,NULL,NULL,NULL,NULL);//問題ナシ
+	hToolbarWnd = CreateWindowEx(WS_EX_TOOLWINDOW, "TOOLBAR", NULL, WS_POPUP | WS_BORDER | WS_CHILD, po.x - 200, po.y - 200, 200, 200, NULL, NULL, NULL, NULL);//問題ナシ
 	// イメージリストの作成（ボタンのアイコン用）
 	HIMAGELIST hImageList = ImageList_Create(16, 16, ILC_COLOR32, 2, 2);
 	HICON hIcon1 = LoadIcon(NULL, IDI_INFORMATION);
 	HICON hIcon2 = LoadIcon(NULL, IDI_WARNING);
 	ImageList_AddIcon(hImageList, hIcon1);
-	ImageList_AddIcon(hImageList, hIcon2);	
+	ImageList_AddIcon(hImageList, hIcon2);
 	SendMessage(hToolbarWnd, TB_SETIMAGELIST, 0, (LPARAM)hImageList);
 
 	// ツールバーのボタン情報
@@ -139,11 +139,11 @@ void Make_menu_window(POINT po) {
 	// ツールバーにボタンを追加
 
 	///ここが問題。TB_BUTTONSTRUCTSIZEが失敗している
-    SendMessage(hToolbarWnd, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON), 0);
+	SendMessage(hToolbarWnd, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON), 0);
 
-    if (!SendMessageA(hToolbarWnd, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON), 0)) {
-    MessageBox(NULL, "TB_BUTTONSTRUCTSIZE failed", "Error", MB_OK);
-    }
+	if (!SendMessageA(hToolbarWnd, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON), 0)) {
+		MessageBox(NULL, "TB_BUTTONSTRUCTSIZE failed", "Error", MB_OK);
+	}
 
 	SendMessage(hToolbarWnd, TB_ADDBUTTONS, (WPARAM)2, (LPARAM)&tbb);
 
@@ -157,6 +157,16 @@ void Make_menu_window(POINT po) {
 	UpdateWindow(hToolbarWnd);
 
 
+
+	// メッセージループ
+	//多分ループはきちんと回っているが、メッセージが送られていない
+	MSG msg;
+	while (GetMessage(&msg, NULL, 0, 0)) {
+		if (!IsDialogMessage(hToolbarWnd, &msg)) {
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+	}
 
 }
 
