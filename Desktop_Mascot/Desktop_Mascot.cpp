@@ -102,13 +102,13 @@ void Make_menu_window(POINT po) {
 	wc.hInstance = GetModuleHandle(NULL);
 	wc.lpszClassName = "TOOLBAR";
 	//wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	//wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 	RegisterClass(&wc);
 
-	if (!RegisterClass(&wc)) {
+	/*if (!RegisterClass(&wc)) {
 		MessageBox(NULL, "ウィンドウクラスの登録に失敗しました。", "エラー", MB_OK | MB_ICONERROR);
 		return;
-	}
+	}*/
 
 
 	//hToolbarWnd = CreateWindow("Toolbar", "TOOL", WS_DLGFRAME, 0, 0, 200, 200, NULL, NULL, GetModuleHandle(NULL), NULL);
@@ -119,7 +119,7 @@ void Make_menu_window(POINT po) {
 	HICON hIcon1 = LoadIcon(NULL, IDI_INFORMATION);
 	HICON hIcon2 = LoadIcon(NULL, IDI_WARNING);
 	ImageList_AddIcon(hImageList, hIcon1);
-	ImageList_AddIcon(hImageList, hIcon2);
+	ImageList_AddIcon(hImageList, hIcon2);	
 	SendMessage(hToolbarWnd, TB_SETIMAGELIST, 0, (LPARAM)hImageList);
 
 	// ツールバーのボタン情報
@@ -157,16 +157,6 @@ void Make_menu_window(POINT po) {
 	UpdateWindow(hToolbarWnd);
 
 
-
-	// メッセージループ
-	//多分ループはきちんと回っているが、メッセージが送られていない
-	MSG msg;
-	while (GetMessage(&msg, NULL, 0, 0)) {
-		if (!IsDialogMessage(hToolbarWnd, &msg)) {
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-	}
 
 }
 
