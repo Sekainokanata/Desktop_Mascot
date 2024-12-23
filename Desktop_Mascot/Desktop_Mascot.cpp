@@ -8,9 +8,6 @@
 
 #pragma comment(lib, "comctl32.lib")
 
-////ツールバーウインドウハンドル
-HWND hToolbarWnd = NULL;
-
 ///ID　ハンドル定義
 #define ID_TOOLBAR_BUTTON1 101
 #define ID_TOOLBAR_BUTTON2 102
@@ -62,8 +59,11 @@ void afterInitialize() {
 	SetDrawScreen(DX_SCREEN_BACK);
 }
 
+////ツールバーウインドウハンドル
+HWND hMenuWindow = NULL;
+
 ///ツールバーウインドウの作成///
-static LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (iMsg)
 	{
@@ -72,19 +72,21 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lPar
 		{
 		case ID_TOOLBAR_BUTTON1:
 			MessageBox(hWnd, "ボタン1がクリックされました！", "通知", MB_OK);
-			break;
+			return 0;
 		case ID_TOOLBAR_BUTTON2:
 			MessageBox(hWnd, "ボタン2がクリックされました！", "通知", MB_OK);
-			break;
+			return 0;
 		}
-		return 0;
+		break;
 	}
 	case WM_DESTROY:
 		DestroyWindow(hWnd);
+		hMenuWindow = NULL;  // ウィンドウハンドルをクリア
 		return 0;
 	default:
 		return DefWindowProc(hWnd, iMsg, wParam, lParam);
 	}
+	return 0;
 }
 
 
@@ -92,71 +94,53 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lPar
 
 void Make_menu_window(POINT po) {
 
-	if (hToolbarWnd != NULL) {
+	if (hMenuWindow != NULL) {
 		return;
 	}
 
-	// 共通コントロールの初期化
-	INITCOMMONCONTROLSEX icex;
-	icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
-	icex.dwICC = ICC_BAR_CLASSES;  // ツールバーコントロールのクラスを指定
-	InitCommonControlsEx(&icex);
+	// ウィンドウクラスの登録
+	WNDCLASS wc = {};
+	wc.lpfnWndProc = WndProc;
+	wc.hInstance = GetModuleHandle(NULL);
+	wc.lpszClassName = "MenuWindowClass";
+	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	RegisterClass(&wc);
 
-	HWND hParentWnd = GetMainWindowHandle();  // 親ウィン
-	hToolbarWnd = CreateWindowEx(WS_EX_TOOLWINDOW, TOOLBARCLASSNAME, NULL, TBSTYLE_WRAPABLE | WS_CHILD, po.x - 200, po.y - 200, 200, 200, hParentWnd, NULL, GetModuleHandle(NULL), NULL);
+	// メニューウィンドウの作成
+	hMenuWindow = CreateWindowEx(WS_EX_TOOLWINDOW, "MenuWindowClass", NULL,
+		WS_POPUP ,
+		po.x - 200, po.y - 200, 200, 200,
+		NULL, NULL, GetModuleHandle(NULL), NULL);
+
+	if (!hMenuWindow) {
+		MessageBox(NULL, "メニューウィンドウの作成に失敗しました。", "エラー", MB_OK | MB_ICONERROR);
+		return;
+	}
 	
-	if (!hToolbarWnd) {
-		MessageBox(NULL, "ツールバーの作成に失敗しました。", "エラー", MB_OK | MB_ICONERROR);
-		return;
-	}
-	
-	// イメージリストの作成（ボタンのアイコン用）
-	HIMAGELIST hImageList = ImageList_Create(16, 16, ILC_COLOR32, 2, 2);
-	HICON hIcon1 = LoadIcon(NULL, IDI_INFORMATION);
-	HICON hIcon2 = LoadIcon(NULL, IDI_WARNING);
-	ImageList_AddIcon(hImageList, hIcon1);
-	ImageList_AddIcon(hImageList, hIcon2);
-	SendMessage(hToolbarWnd, TB_SETIMAGELIST, 0, (LPARAM)hImageList);
+	// ボタンの作成
+	HWND hButton1 = CreateWindow("BUTTON", "ボタン1",
+		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+		20, 20, 160, 30,
+		hMenuWindow,
+		(HMENU)ID_TOOLBAR_BUTTON1,
+		GetModuleHandle(NULL),
+		NULL);
 
-	// ツールバーのボタン情報
-	TBBUTTON tbb[2] = { 0 };
-	tbb[0].iBitmap = 0; // アイコンのインデックス
-	tbb[0].idCommand = ID_TOOLBAR_BUTTON1;
-	tbb[0].fsState = TBSTATE_ENABLED;
-	tbb[0].fsStyle = TBSTYLE_BUTTON;
-	tbb[0].iString = (INT_PTR)"ボタン1";
+	HWND hButton2 = CreateWindow("BUTTON", "ボタン2",
+		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+		20, 60, 160, 30,
+		hMenuWindow,
+		(HMENU)ID_TOOLBAR_BUTTON2,
+		GetModuleHandle(NULL),
+		NULL);
 
-	tbb[1].iBitmap = 1;
-	tbb[1].idCommand = ID_TOOLBAR_BUTTON2;
-	tbb[1].fsState = TBSTATE_ENABLED;
-	tbb[1].fsStyle = TBSTYLE_BUTTON;
-	tbb[1].iString = (INT_PTR)"ボタン2";
-
-	// ボタンサイズの設定（戻り値はチェックしない）
-	SendMessage(hToolbarWnd, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON), 0);
-
-	// ツールバーにボタンを追加
-	if (!SendMessage(hToolbarWnd, TB_ADDBUTTONS, (WPARAM)2, (LPARAM)&tbb)) {
-		MessageBox(NULL, "ボタンの追加に失敗しました。", "エラー", MB_OK | MB_ICONERROR);
-		return;
-	}
-	// ツールバーを表示
-	SendMessage(hToolbarWnd, TB_AUTOSIZE, 0, 0);
-	ShowWindow(hToolbarWnd, SW_SHOW);
-	UpdateWindow(hToolbarWnd);
+	// ウィンドウを最前面に設定
+	SetWindowPos(hMenuWindow, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
 
-
-	// メッセージループ
-	//多分ループはきちんと回っているが、メッセージが送られていない
-	MSG msg;
-	while (GetMessage(&msg, NULL, 0, 0)) {
-		if (!IsDialogMessage(hToolbarWnd, &msg)) {
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-	}
-
+	// ウィンドウを表示
+	ShowWindow(hMenuWindow, SW_SHOW);
+	UpdateWindow(hMenuWindow);
 }
 
 void mainsystem(int width, int height)
