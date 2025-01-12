@@ -6,8 +6,6 @@
 #include <Windows.h>
 #include <commctrl.h>
 
-#include <tchar.h>
-
 #pragma comment(lib, "comctl32.lib")
 
 ///ID　ハンドル定義
@@ -30,13 +28,13 @@ int UserIcon = 0;
 */
 ///
 
-int Enter_chk(const TCHAR *centence)
+int Enter_chk(const char* centence)
 {
 	int counter = 0;
-	const TCHAR* match = _T("\n");
-	const TCHAR *centence_ptr = centence;
+	const char* match = "\n";
+	const char* centence_ptr = centence;
 	while (true) {
-		centence_ptr = _tcsstr(centence_ptr, match);
+		centence_ptr = strstr(centence_ptr, match);
 		if (centence_ptr != NULL)
 		{
 			counter++;
@@ -208,16 +206,15 @@ void mainsystem(int width, int height)
 	localtime_s(&pnow, &now);
 	POINT po;
 
-	static const TCHAR* Serifu[] = {
-		_T("Не уходи...♥"),
-		_T("テッテッテ、\nテーストー"),
-		_T("カッコいい系\n女子、正直スコです。"),
-		_T("なでなで検知\nいい感じ"),
-		_T("三行用の\nテスト\nしちゃう？！"),
-		_T("Адкий\nлюбитель\nженских\nножек"),
-		_T("うおおおおおおお\nこれでどうじゃあああ!!"),
+	static const char *Serifu[] = {
+			"Не уходи...♥",
+			"テッテッテ、\nテーストー",
+			"カッコいい系\n女子、正直スコです。",
+			"なでなで検知\nいい感じ",
+			"三行用の\nテスト\nしちゃう？！",
+			"Адкий\nлюбитель\nженских\nножек",
+			"うおおおおおおお\nこれでどうじゃあああ!!",
 	};
-
 
 	while (ProcessMessage() == 0)
 	{
