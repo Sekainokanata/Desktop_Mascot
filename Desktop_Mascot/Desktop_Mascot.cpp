@@ -101,12 +101,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 				// utf8FileName を使用して画像を読み込む
 				UserIcon = LoadGraph(szFileName);
+				DestroyWindow(hWnd);
+				hMenuWindow = NULL;  // ウィンドウハンドルをクリア
+				return 0;
 
 			}
 			else
 			{
 				// ユーザーがキャンセルした場合の処理
 				MessageBox(hWnd, TEXT("ファイルの選択がキャンセルされました。"), TEXT("情報"), MB_OK);
+				DestroyWindow(hWnd);
+				hMenuWindow = NULL;  // ウィンドウハンドルをクリア
+				return 0;
 			}
 			return 0;
 		}
@@ -180,6 +186,7 @@ void Make_menu_window(POINT po) {
 	UpdateWindow(hMenuWindow);
 
 	// メッセージループの開始
+	//
 	/*MSG msg;
 	while (IsWindow(hMenuWindow) && GetMessage(&msg, NULL, 0, 0))
 	{
@@ -194,13 +201,14 @@ void Make_menu_window(POINT po) {
 void mainsystem(int width, int height)
 {
 	int Cr = GetColor(255, 204, 255);
-	int Arisa_Meido = LoadGraph(L"アーリャメイド服.png");
-	int Arisa_Seifuku = LoadGraph(L"アーリャ制服.png");
-	int Maria_Tenshi = LoadGraph(L"マーシャ天使.png");
+	//int Arisa_Meido = LoadGraph(L"アーリャメイド服.png");
+	//int Arisa_Seifuku = LoadGraph(L"アーリャ制服.png");
+	//int Maria_Tenshi = LoadGraph(L"マーシャ天使.png");
+	int default_icon = LoadGraph(L"DEFALT.png");
 	int fukidashi = LoadGraph(L"吹き出し画像.png");
 	SetFontSize(35);
 	int FontHandle = CreateFontToHandle(NULL, 40, 3);
-	int SELECT_GRAPH = Arisa_Meido;
+	int SELECT_GRAPH = default_icon;
 	UserIcon = SELECT_GRAPH;
 	int SELECT_WORD = 6;
 	time_t now = time(NULL);
@@ -295,7 +303,8 @@ void mainsystem(int width, int height)
 				
 		}
 		if (CheckHitKey(KEY_INPUT_Q)) {
-			DeleteGraph(Arisa_Meido);
+			DeleteGraph(UserIcon);
+			DeleteGraph(default_icon);
 			break;
 		}
 	}
@@ -310,10 +319,10 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	GetWindowRect(GetDesktopWindow(), &rc);
 	width = rc.right - rc.left;
 	height = rc.bottom - rc.top;
-	//width = 2560;
-	//height = 1440;
-	width = 1920;
-	height = 1080;
+	width = 2560;
+	height = 1440;
+	//width = 1920;
+	//height = 1080;
 
 	SetUseCharCodeFormat(DX_CHARCODEFORMAT_UTF8);
 	preInitialize(&width, &height);
