@@ -15,7 +15,10 @@
 #define ID_TOOLBAR_BUTTON2 102
 
 int UserIcon = 0;
+int main_width = 0;
+int main_height = 0;
 
+bool FLAG = TRUE;//画像を変更したかどうかのフラグ
 
 /*//////////////
 
@@ -29,6 +32,31 @@ int UserIcon = 0;
 
 */
 ///
+
+#include <gdiplus.h>
+#pragma comment(lib, "gdiplus.lib")
+
+void GetImageSize(const TCHAR* filePath, int* width, int* height)
+{
+	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+	ULONG_PTR gdiplusToken;
+	Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+
+	{
+		Gdiplus::Image image(filePath);
+		*width = image.GetWidth();
+		*height = image.GetHeight();
+	}
+
+	Gdiplus::GdiplusShutdown(gdiplusToken);
+}
+//Gdiplusライブラリ
+
+
+
+
+
+
 
 int Enter_chk(const TCHAR *centence)
 {
@@ -98,6 +126,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				
 				//ここで問題が起こっている
 				//UserIconに正常なファイルパスが入っていない
+				GetImageSize(szFileName, &main_width, &main_height);
 
 				// utf8FileName を使用して画像を読み込む
 				UserIcon = LoadGraph(szFileName);
@@ -205,6 +234,7 @@ void mainsystem(int width, int height)
 	//int Arisa_Seifuku = LoadGraph(L"アーリャ制服.png");
 	//int Maria_Tenshi = LoadGraph(L"マーシャ天使.png");
 	int default_icon = LoadGraph(L"DEFALT.png");
+	GetImageSize(L"DEFALT.png", &main_width, &main_height);
 	int fukidashi = LoadGraph(L"吹き出し画像.png");
 	SetFontSize(35);
 	int FontHandle = CreateFontToHandle(NULL, 40, 3);
@@ -229,9 +259,14 @@ void mainsystem(int width, int height)
 
 	while (ProcessMessage() == 0)
 	{
+		/*if (FLAG == TRUE)
+		{
+			FLAG = FALSE;
+			DrawGraph(width - 250, height - 450, SELECT_GRAPH, TRUE);//キャラ描画
+		}*/
 		SELECT_GRAPH = UserIcon;
 		ClearDrawScreen();
-		DrawGraph(width - 250, height - 450, SELECT_GRAPH, TRUE);//キャラ描画
+		DrawGraph(width - main_width, height - main_height, SELECT_GRAPH, TRUE);//キャラ描画
 		DrawGraph(width - 400, height - 650, fukidashi, TRUE);//吹き出し描写
 		///\nの数によって行数を判別//
 		if (Enter_chk(Serifu[SELECT_WORD]) == 1)
@@ -274,7 +309,7 @@ void mainsystem(int width, int height)
 		///////撫でてる最中のアニメーションが欲しい
 		if (GetKeyState(VK_LBUTTON) & 0x80) {//左クリ
 			GetCursorPos(&po);
-			if (po.x >= width - 250 and po.y >= height - 450)
+			if (po.x >= width - main_width and po.y >= height - main_height)
 			{
 				//SELECT_GRAPH = Arisa_Seifuku;
 				ULONGLONG start_time = ::GetTickCount64();
@@ -296,7 +331,7 @@ void mainsystem(int width, int height)
 		}
 		if (GetKeyState(VK_RBUTTON) & 0x80) {//右クリ
 			GetCursorPos(&po);
-			if (po.x >= width - 250 and po.y >= height - 450) {
+			if (po.x >= width - main_width and po.y >= height - main_height) {
 				Make_menu_window(po);
 				//SELECT_GRAPH = UserIcon;
 			}
