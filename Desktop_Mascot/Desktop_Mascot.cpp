@@ -25,7 +25,7 @@ bool FLAG = TRUE;//画像を変更したかどうかのフラグ
 デスクトップマスコットの
 開発方針大幅変更
 
-まず、デスクトップマスコットになる画像はユーザーさんにアップロードしてもらうことにした。
+✅まず、デスクトップマスコットになる画像はユーザーさんにアップロードしてもらうことにした。
 そのため、画像のサイズによってウィンドウサイズを変更する必要がある。
 さらに、画像のサイズによって吹き出しの位置も変更する必要がある。
 台詞についても、大幅変更orユーザーさん独自で設定できるようにする。
@@ -36,7 +36,7 @@ bool FLAG = TRUE;//画像を変更したかどうかのフラグ
 #include <gdiplus.h>
 #pragma comment(lib, "gdiplus.lib")
 
-void GetImageSize(const TCHAR* filePath, int* width, int* height)
+int GetImageSize(const TCHAR* filePath, int* width, int* height)
 {
 	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
 	ULONG_PTR gdiplusToken;
@@ -49,14 +49,10 @@ void GetImageSize(const TCHAR* filePath, int* width, int* height)
 	}
 
 	Gdiplus::GdiplusShutdown(gdiplusToken);
+
+	return width, height;
 }
 //Gdiplusライブラリ
-
-
-
-
-
-
 
 int Enter_chk(const TCHAR *centence)
 {
@@ -161,9 +157,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-
-
-
 void Make_menu_window(POINT po) {
 
 	if (hMenuWindow != NULL) {
@@ -230,11 +223,13 @@ void Make_menu_window(POINT po) {
 void mainsystem(int width, int height)
 {
 	int Cr = GetColor(255, 204, 255);
+	int image_width = 0;
+	int image_height = 0;
 	//int Arisa_Meido = LoadGraph(L"アーリャメイド服.png");
 	//int Arisa_Seifuku = LoadGraph(L"アーリャ制服.png");
 	//int Maria_Tenshi = LoadGraph(L"マーシャ天使.png");
 	int default_icon = LoadGraph(L"DEFALT.png");
-	GetImageSize(L"DEFALT.png", &main_width, &main_height);
+	image_width, image_height = GetImageSize(L"DEFALT.png", &main_width, &main_height);
 	int fukidashi = LoadGraph(L"吹き出し画像.png");
 	SetFontSize(35);
 	int FontHandle = CreateFontToHandle(NULL, 40, 3);
@@ -348,17 +343,16 @@ void mainsystem(int width, int height)
 
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
-	int width = 0;
-	int height = 0;
-	RECT rc;
+	//RECT rc;
+	/*
 	GetWindowRect(GetDesktopWindow(), &rc);
 	width = rc.right - rc.left;
 	height = rc.bottom - rc.top;
+	*/
+	int width = GetSystemMetrics(SM_CXSCREEN);
+	int height = GetSystemMetrics(SM_CYSCREEN);
 	width = 2560;
 	height = 1440;
-	//width = 1920;
-	//height = 1080;
-
 	SetUseCharCodeFormat(DX_CHARCODEFORMAT_UTF8);
 	preInitialize(&width, &height);
 	if (DxLib_Init() == -1)
