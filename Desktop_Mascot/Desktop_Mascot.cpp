@@ -5,6 +5,7 @@
 #include <string.h>
 #include <Windows.h>
 #include <commctrl.h>
+#include <shellscalingapi.h>
 
 #include <tchar.h>
 
@@ -35,8 +36,10 @@ bool FLAG = TRUE;//画像を変更したかどうかのフラグ
 
 #include <gdiplus.h>
 #pragma comment(lib, "gdiplus.lib")
+#pragma comment(lib, "Shcore.lib")
 
-int GetImageSize(const TCHAR* filePath, int* width, int* height)
+
+void GetImageSize(const TCHAR* filePath, int& width, int& height)
 {
 	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
 	ULONG_PTR gdiplusToken;
@@ -44,13 +47,11 @@ int GetImageSize(const TCHAR* filePath, int* width, int* height)
 
 	{
 		Gdiplus::Image image(filePath);
-		*width = image.GetWidth();
-		*height = image.GetHeight();
+		width = image.GetWidth();
+		height = image.GetHeight();
 	}
 
 	Gdiplus::GdiplusShutdown(gdiplusToken);
-
-	return width, height;
 }
 //Gdiplusライブラリ
 
@@ -72,9 +73,9 @@ int Enter_chk(const TCHAR *centence)
 	return counter + 1;
 }
 
-void preInitialize(int* width, int* height)
+void preInitialize(int width, int height)
 {
-	SetGraphMode(*width, *height, 32);
+	SetGraphMode(width, height, 32);
 	ChangeWindowMode(TRUE);
 	SetWindowStyleMode(2);
 	SetUseBackBufferTransColorFlag(TRUE);
@@ -122,7 +123,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				
 				//ここで問題が起こっている
 				//UserIconに正常なファイルパスが入っていない
-				GetImageSize(szFileName, &main_width, &main_height);
+				GetImageSize(szFileName, main_width, main_height);
+
 
 				// utf8FileName を使用して画像を読み込む
 				UserIcon = LoadGraph(szFileName);
@@ -223,13 +225,14 @@ void Make_menu_window(POINT po) {
 void mainsystem(int width, int height)
 {
 	int Cr = GetColor(255, 204, 255);
-	int image_width = 0;
-	int image_height = 0;
 	//int Arisa_Meido = LoadGraph(L"アーリャメイド服.png");
 	//int Arisa_Seifuku = LoadGraph(L"アーリャ制服.png");
 	//int Maria_Tenshi = LoadGraph(L"マーシャ天使.png");
 	int default_icon = LoadGraph(L"DEFALT.png");
-	image_width, image_height = GetImageSize(L"DEFALT.png", &main_width, &main_height);
+
+	GetImageSize(L"DEFALT.png", main_width, main_height);
+
+
 	int fukidashi = LoadGraph(L"吹き出し画像.png");
 	SetFontSize(35);
 	int FontHandle = CreateFontToHandle(NULL, 40, 3);
@@ -250,6 +253,13 @@ void mainsystem(int width, int height)
 		_T("Адкий\nлюбитель\nженских\nножек"),
 		_T("うおおおおおおお\nこれでどうじゃあああ!!"),
 	};
+
+
+
+	////////////////////////////////
+	        // MAIN LOOP //
+	////////////////////////////////
+
 
 
 	while (ProcessMessage() == 0)
@@ -343,18 +353,29 @@ void mainsystem(int width, int height)
 
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
-	//RECT rc;
+	SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
 	/*
+	RECT rc;
+	int width = 0;
+	int height = 0;
 	GetWindowRect(GetDesktopWindow(), &rc);
 	width = rc.right - rc.left;
 	height = rc.bottom - rc.top;
 	*/
-	int width = GetSystemMetrics(SM_CXSCREEN);
-	int height = GetSystemMetrics(SM_CYSCREEN);
-	width = 2560;
-	height = 1440;
+	int width = 0;
+	int height = 0;
+
+
+	width = GetSystemMetrics(SM_CXSCREEN);
+	height = GetSystemMetrics(SM_CYSCREEN);
+
+
+	//int width = GetSystemMetrics(SM_CXSCREEN);
+	//int height = GetSystemMetrics(SM_CYSCREEN);
+	//width = 2560;
+	//height = 1440;
 	SetUseCharCodeFormat(DX_CHARCODEFORMAT_UTF8);
-	preInitialize(&width, &height);
+	preInitialize(width, height);
 	if (DxLib_Init() == -1)
 		return -1;
 	afterInitialize();
