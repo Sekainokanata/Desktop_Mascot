@@ -79,6 +79,13 @@ void preInitialize(int width, int height)
 	ChangeWindowMode(TRUE);
 	SetWindowStyleMode(2);
 	SetUseBackBufferTransColorFlag(TRUE);
+	/*
+	LONG exStyle = GetWindowLongW(GetMainWindowHandle(), GWL_EXSTYLE);
+	SetWindowLongPtr(GetMainWindowHandle(), GWL_EXSTYLE, exStyle | WS_EX_LAYERED);
+
+	BYTE alpha = 200;
+	SetLayeredWindowAttributes(GetMainWindowHandle(), 0, alpha, LWA_ALPHA);
+	*/
 }
 
 void afterInitialize() {
@@ -354,30 +361,18 @@ void mainsystem(int width, int height)
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
 	SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
-	/*
-	RECT rc;
 	int width = 0;
 	int height = 0;
-	GetWindowRect(GetDesktopWindow(), &rc);
-	width = rc.right - rc.left;
-	height = rc.bottom - rc.top;
-	*/
-	int width = 0;
-	int height = 0;
-
-
 	width = GetSystemMetrics(SM_CXSCREEN);
 	height = GetSystemMetrics(SM_CYSCREEN);
 
-
-	//int width = GetSystemMetrics(SM_CXSCREEN);
-	//int height = GetSystemMetrics(SM_CYSCREEN);
-	//width = 2560;
-	//height = 1440;
 	SetUseCharCodeFormat(DX_CHARCODEFORMAT_UTF8);
+
 	preInitialize(width, height);
+
 	if (DxLib_Init() == -1)
 		return -1;
+
 	afterInitialize();
 	////////////////////////////////////////
 
