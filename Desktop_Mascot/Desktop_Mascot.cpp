@@ -19,7 +19,9 @@ int UserIcon = 0;
 int main_width = 0;
 int main_height = 0;
 
+
 bool FLAG = TRUE;//画像を変更したかどうかのフラグ
+bool tool_FLAG = FALSE;//ツールバーを表示しているかどうかのフラグ
 
 /*//////////////
 
@@ -95,6 +97,57 @@ void afterInitialize() {
 	SetDrawScreen(DX_SCREEN_BACK);
 }
 
+int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
+{
+	UINT num = 0;
+	UINT size = 0;
+	Gdiplus::ImageCodecInfo* pImageCodecInfo = NULL;
+
+	Gdiplus::GetImageEncodersSize(&num, &size);
+	if (size == 0)
+		return -1;
+
+	pImageCodecInfo = (Gdiplus::ImageCodecInfo*)(malloc(size));
+	if (pImageCodecInfo == NULL)
+		return -1;
+
+	Gdiplus::GetImageEncoders(num, size, pImageCodecInfo);
+	for (UINT j = 0; j < num; ++j)
+	{
+		if (wcscmp(pImageCodecInfo[j].MimeType, format) == 0)
+		{
+			*pClsid = pImageCodecInfo[j].Clsid;
+			free(pImageCodecInfo);
+			return j;
+		}
+	}
+
+	free(pImageCodecInfo);
+	return -1;
+}
+
+void ResizeImage(const TCHAR* srcFilePath, const TCHAR* destFilePath, int newWidth, int newHeight)
+{
+	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+	ULONG_PTR gdiplusToken;
+	Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+
+	{
+		Gdiplus::Image srcImage(srcFilePath);
+		Gdiplus::Bitmap newImage(newWidth, newHeight, srcImage.GetPixelFormat());
+
+		Gdiplus::Graphics graphics(&newImage);
+		graphics.DrawImage(&srcImage, 0, 0, newWidth, newHeight);
+
+		CLSID pngClsid;
+		GetEncoderClsid(L"image/png", &pngClsid);
+		newImage.Save(destFilePath, &pngClsid, NULL);
+	}
+
+	Gdiplus::GdiplusShutdown(gdiplusToken);
+}
+
+
 ////ツールバーウインドウハンドル
 HWND hMenuWindow = NULL;
 
@@ -122,23 +175,36 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 			// ファイル選択ダイアログの表示
 			if (GetOpenFileName(&ofn))
-			{
-				//MessageBox(hWnd, szFileName, TEXT(szFileName), MB_OK);
-				// 選択されたファイルパスが szFileName に格納されます
-				// 必要な処理をここに追加します。例としてメッセージボックスに表示します。
-				//MessageBox(hWnd, szFileName,NULL, MB_OK);
-				
-				//ここで問題が起こっている
-				//UserIconに正常なファイルパスが入っていない
+			{	
 				GetImageSize(szFileName, main_width, main_height);
 
 
-				// utf8FileName を使用して画像を読み込む
-				UserIcon = LoadGraph(szFileName);
-				DestroyWindow(hWnd);
-				hMenuWindow = NULL;  // ウィンドウハンドルをクリア
-				return 0;
+				// 画像を縮小して保存
+				TCHAR resizedFileName[MAX_PATH] = TEXT("resized_image.png");
 
+				if (main_width > 500 && main_height > 500) {
+					if (main_width > main_height) {
+
+						int resized_width = 500;
+						int resized_height = (int)(500.0 * main_height / main_width);
+						main_width = resized_width;
+						main_height = resized_height;
+
+					}
+					else {
+						int resized_height = 500;
+						int resized_width = (int)(500.0 * main_width / main_height);
+						main_width = resized_width;
+						main_height = resized_height;
+					}
+				}
+				ResizeImage(szFileName, resizedFileName, main_width, main_height);
+
+				// 縮小した画像を読み込む
+				UserIcon = LoadGraph(resizedFileName);
+				DestroyWindow(hWnd);
+				hMenuWindow = NULL;
+				return 0;
 			}
 			else
 			{
@@ -180,17 +246,21 @@ void Make_menu_window(POINT po) {
 	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 	RegisterClass(&wc);
 
+	HWND hMainWindow = GetMainWindowHandle(); // メインウインドウのハンドルを取得
+
 	// メニューウィンドウの作成
     hMenuWindow = CreateWindowEx(WS_EX_TOOLWINDOW, L"MenuWindowClass", NULL,
 		WS_POPUP ,
 		po.x - 200, po.y - 200, 200, 200,
-		NULL, NULL, GetModuleHandle(NULL), NULL);
+		hMainWindow, NULL, GetModuleHandle(NULL), NULL);
 
 	if (!hMenuWindow) {
 		MessageBox(NULL, L"メニューウィンドウの作成に失敗しました。", L"エラー", MB_OK | MB_ICONERROR);
 		return;
 	}
 	
+	tool_FLAG = TRUE;
+
 	// ボタンの作成
 	HWND hButton1 = CreateWindow(L"BUTTON", L"設定",
 		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
@@ -218,7 +288,7 @@ void Make_menu_window(POINT po) {
 
 	// メッセージループの開始
 	//
-	/*MSG msg;
+	MSG msg;
 	while (IsWindow(hMenuWindow) && GetMessage(&msg, NULL, 0, 0))
 	{
 		if (!IsDialogMessage(hMenuWindow, &msg))
@@ -226,7 +296,7 @@ void Make_menu_window(POINT po) {
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-	}*/
+	}
 }
 
 void mainsystem(int width, int height)
@@ -271,11 +341,6 @@ void mainsystem(int width, int height)
 
 	while (ProcessMessage() == 0)
 	{
-		/*if (FLAG == TRUE)
-		{
-			FLAG = FALSE;
-			DrawGraph(width - 250, height - 450, SELECT_GRAPH, TRUE);//キャラ描画
-		}*/
 		SELECT_GRAPH = UserIcon;
 		ClearDrawScreen();
 		DrawGraph(width - main_width, height - main_height, SELECT_GRAPH, TRUE);//キャラ描画
@@ -321,6 +386,13 @@ void mainsystem(int width, int height)
 		///////撫でてる最中のアニメーションが欲しい
 		if (GetKeyState(VK_LBUTTON) & 0x80) {//左クリ
 			GetCursorPos(&po);
+			/*if (tool_FLAG) {
+				if (hMenuWindow != NULL) {
+					DestroyWindow(hMenuWindow);
+					hMenuWindow = NULL;
+				}
+			}*/
+
 			if (po.x >= width - main_width and po.y >= height - main_height)
 			{
 				//SELECT_GRAPH = Arisa_Seifuku;
