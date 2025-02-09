@@ -6,7 +6,6 @@
 #include <Windows.h>
 #include <commctrl.h>
 #include <shellscalingapi.h>
-
 #include <tchar.h>
 
 #pragma comment(lib, "comctl32.lib")
@@ -169,7 +168,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			ofn.hwndOwner = hWnd; // オーナーウィンドウのハンドル
 			ofn.lpstrFile = szFileName;
 			ofn.nMaxFile = MAX_PATH;
-			ofn.lpstrFilter = TEXT("画像ファイル\0*.jpg;*.png;*.bmp\0すべてのファイル\0*.*\0\0");
+			ofn.lpstrFilter = TEXT("画像ファイル\0*.jpg;*.png;*.bmp;*.gif\0すべてのファイル\0*.*\0\0");
 			ofn.nFilterIndex = 1;
 			ofn.Flags = OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
 
@@ -351,13 +350,11 @@ void mainsystem(int width, int height)
 			SetFontSize(35);
 			DrawString(width - 365, height - 540, Serifu[SELECT_WORD], Cr);//台詞描写１行
 		}
-
 		else if (Enter_chk(Serifu[SELECT_WORD]) == 2)
 		{
 			SetFontSize(35);
 			DrawString(width - 365, height - 560, Serifu[SELECT_WORD], Cr);//台詞描写２行
 		}
-
 		else if (Enter_chk(Serifu[SELECT_WORD]) == 3)
 		{
 			SetFontSize(30);
