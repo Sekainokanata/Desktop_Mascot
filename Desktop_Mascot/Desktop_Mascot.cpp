@@ -177,7 +177,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			{	
 				GetImageSize(szFileName, main_width, main_height);
 
-
+				
 				// 画像を縮小して保存
 				TCHAR resizedFileName[MAX_PATH] = TEXT("resized_image.png");
 
@@ -309,7 +309,7 @@ void mainsystem(int width, int height)
 	GetImageSize(L"DEFALT.png", main_width, main_height);
 
 
-	int fukidashi = LoadGraph(L"吹き出し画像.png");
+	//int fukidashi = LoadGraph(L"吹き出し画像.png");
 	SetFontSize(35);
 	int FontHandle = CreateFontToHandle(NULL, 40, 3);
 	int SELECT_GRAPH = default_icon;
@@ -343,8 +343,9 @@ void mainsystem(int width, int height)
 		SELECT_GRAPH = UserIcon;
 		ClearDrawScreen();
 		DrawGraph(width - main_width, height - main_height, SELECT_GRAPH, TRUE);//キャラ描画
-		DrawGraph(width - 400, height - 650, fukidashi, TRUE);//吹き出し描写
+		//DrawGraph(width - 400, height - 650, fukidashi, TRUE);//吹き出し描写
 		///\nの数によって行数を判別//
+		/*
 		if (Enter_chk(Serifu[SELECT_WORD]) == 1)
 		{
 			SetFontSize(35);
@@ -365,7 +366,7 @@ void mainsystem(int width, int height)
 			SetFontSize(25);
 			DrawString(width - 365, height - 580, Serifu[SELECT_WORD], Cr);//台詞描写4行
 		}
-
+		*/
 		ScreenFlip();
 
 		/*if (CheckHitKey(KEY_INPUT_1)) {
@@ -406,7 +407,7 @@ void mainsystem(int width, int height)
 				}
 				if (GetKeyState(VK_LBUTTON) & 0x80 and move_distance >= 500 * 2 * 5 and abs(po.x - defalt_point) < 500)//基準値*なでなで（往復）回数をチェック、同時にポインターが離れ過ぎてないか確認
 				{
-					SELECT_WORD = 3;
+					//SELECT_WORD = 3;
 				}
 			}
 		}
